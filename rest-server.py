@@ -4,6 +4,7 @@ from flask import Flask, request, Response
 import jsonpickle
 from PIL import Image
 import io
+import base64
 import argparse
 
 # Initialize the Flask application
@@ -51,12 +52,27 @@ def rawimage():
 
 @app.route('/api/dotproduct', methods=['POST'])
 def dotproduct():
-    pass
+    data = request.get_json()
+    response = {'dotproduct': sum(x * y for x, y in zip(data['a'], data['b']))}
+    return Response(
+        response=jsonpickle.encode(response),
+        status=200,
+        mimetype="application/json"
+    )
 
 
 @app.route('/api/jsonimage', methods=['POST'])
 def jsonimage():
-    pass
+    try:
+        img = Image.open(io.BytesIO(base64.b64decode(request.get_json()['image'])))
+        response = {'width': img.size[0], 'height': img.size[1]}
+    except:
+        response = {'width': 0, 'height': 0}
+    return Response(
+        response=jsonpickle.encode(response),
+        status=200,
+        mimetype="application/json"
+    )
 
 
 if __name__ == '__main__':
